@@ -1,5 +1,5 @@
 
-//package ru.kata.spring.boot_security.demo.controller;
+package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -18,12 +18,10 @@ import java.util.Set;
 public class DbInitController {
 
     private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
 
-    public DbInitController(UserService userService, PasswordEncoder passwordEncoder, RoleService roleService) {
+    public DbInitController(UserService userService, RoleService roleService) {
         this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
         this.roleService = roleService;
     }
 
