@@ -16,7 +16,7 @@ public class MyController {
     @GetMapping("/")
     public String homePage() {
         if(userService.listUsers().isEmpty()) {
-            return "create_first_user";
+            return "all_users";
         }
         return "redirect:/admin";
     }

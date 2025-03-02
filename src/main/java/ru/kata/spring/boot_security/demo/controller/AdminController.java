@@ -68,7 +68,11 @@ public class AdminController {
     }
     @GetMapping("users/{id}")
     public String showAllUsers(@PathVariable("id") Long id, ModelMap modelMap){
-        modelMap.addAttribute("user", userService.getUserById(id));
+        User user = userService.getUserById(id);
+        if(user == null){
+            return "redirect:/admin/users";
+        }
+        modelMap.addAttribute("user", user);
         return "show_users_by_id";
     }
 
