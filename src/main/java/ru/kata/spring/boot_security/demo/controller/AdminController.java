@@ -1,4 +1,4 @@
-package ru.kata.spring.boot_security.demo.controller;
+//package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -39,9 +39,7 @@ public class AdminController {
     }
 
     @PostMapping(value = "/users/add")
-    public String createUser(@ModelAttribute("user") User user,
-                             @RequestParam(value = "roles") String[] roles){
-        user.setRoles(roleService.getSetOfRoles(roles));
+    public String createUser(@ModelAttribute("user") User user){
              userService.addUser(user);
              return "redirect:/admin/users";
     }
@@ -54,9 +52,7 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{id}/edit")
-    public String updateEdit(@ModelAttribute("user") User user,
-                             @RequestParam(value = "roles") String[] roles) {
-        user.setRoles(roleService.getSetOfRoles(roles));
+    public String updateEdit(@ModelAttribute("user") User user) {
         userService.updateUser(user);
         return "redirect:/admin/users";
     }

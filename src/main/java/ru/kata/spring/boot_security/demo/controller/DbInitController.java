@@ -1,7 +1,6 @@
 
 package ru.kata.spring.boot_security.demo.controller;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.entities.Role;
@@ -43,11 +42,9 @@ public class DbInitController {
             System.out.println("Роль USER создана!");
         }
 
-        try {
-            userService.findByUsername("admin");
-            System.out.println("Пользователь ADMIN уже существует");
-        } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
-
+            if (userService.findByUsername("admin") == null) {
+                System.out.println("Пользователь ADMIN уже существует");
+            };
             Set<Role> roles = new HashSet<>();
             roles.add(adminRole);
 
@@ -62,4 +59,4 @@ public class DbInitController {
             System.out.println("Юзер был успешно создан");
         }
     }
-}
+

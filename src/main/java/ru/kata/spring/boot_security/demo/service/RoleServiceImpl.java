@@ -3,18 +3,20 @@ package ru.kata.spring.boot_security.demo.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.dao.RoleDao;
 import ru.kata.spring.boot_security.demo.entities.Role;
+import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 
-import java.util.Set;
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 public class RoleServiceImpl implements RoleService {
 
-    private RoleDao roleDao;
+    private RoleRepository roleRepository;
+
     @Autowired
-    public RoleServiceImpl(RoleDao roleDao) {
-        this.roleDao = roleDao;
+    public RoleServiceImpl(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
     }
 
     public RoleServiceImpl() {
@@ -22,37 +24,34 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<Role> getAllRoles() {
-        return roleDao.getAllRoles();
+    public List<Role> getAllRoles() {
+        return roleRepository.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Role getRoleByName(String roleName) {
-        return roleDao.getRoleByName(roleName);
+        return roleRepository.findByName(roleName);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Role getById(Long id) {
-        return roleDao.getById(id);
+        return roleRepository.getById(id);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Set<Role> getSetOfRoles(String[] roleNames) {
-        return roleDao.getSetOfRoles(roleNames);
-    }
 
     @Override
     @Transactional
     public void addRole(Role role) {
-    roleDao.addRole(role);
+        System.out.println("Сохранение роли " + role.getName());
+        Role saveRole = roleRepository.save(role);
+        System.out.println("Роль с Id сохранена " + saveRole.getId());
     }
 
     @Override
     @Transactional(readOnly = true)
     public void deleteRole(Role role) {
-        roleDao.deleteRole(role);
+        roleRepository.delete(role);
     }
 }

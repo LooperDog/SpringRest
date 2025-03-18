@@ -1,84 +1,225 @@
+<!-- resources/templates/all_users.html -->
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Админ. Все пользователи</title>
-  <!-- Подключаем Bootstrap -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <!-- Подключаем Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+  <title>Admin Panel</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
 </head>
-<body class="bg-light">
+<body>
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Users</h2>
+    <button id="logoutBtn" class="btn btn-secondary">Выйти</button>
+  </div>
+  <button id="addUserBtn" class="btn btn-primary mb-3">Добавить пользователя</button>
+  <table class="table">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Имя</th>
+      <th>Фамилия</th>
+      <th>Email</th>
+      <th>Роль</th>
+      <th>Действие</th>
+    </tr>
+    </thead>
+    <tbody id="usersTable">
+    </tbody>
+  </table>
+</div>
 
-<div class="container mt-5">
-  <div class="card shadow-lg">
-    <div class="card-header bg-primary text-white text-center">
-      <h2>Привет, Админ! Вот все пользователи:</h2>
-    </div>
-    <div class="card-body">
-
-      <!-- Таблица пользователей -->
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-          <thead class="table-dark">
-          <tr>
-            <th>Id</th>
-            <th>Имя</th>
-            <th>Фамилия</th>
-            <th>Электронная почта</th>
-            <th>Роль</th>
-            <th class="text-center">Действия</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="user : ${setUser}">
-            <td th:text="${user.id}"></td>
-            <td th:text="${user.username}"></td>
-            <td th:text="${user.lastName}"></td>
-            <td th:text="${user.email}"></td>
-            <td>
-              <span class="badge bg-secondary" th:each="role : ${user.roles}" th:text="${role.name}"></span>
-            </td>
-            <td class="text-center">
-              <!-- Кнопка редактирования -->
-              <a th:href="@{/admin/users/{id}/edit(id=${user.id})}" class="btn btn-warning btn-sm">
-                <i class="bi bi-pencil"></i> Изменить
-              </a>
-
-              <!-- Кнопка удаления -->
-              <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" th:method="post" class="d-inline">
-                <input type="hidden" name="_method" value="DELETE"/>
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Вы уверены?');">
-                  <i class="bi bi-trash"></i> Удалить
-                </button>
-              </form>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+<!-- Модальное окно для добавления/редактирования -->
+<div class="modal" id="userModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">User</h5>
       </div>
-
-      <!-- Кнопка добавления нового пользователя -->
-      <div class="text-center mt-3">
-        <a href="/admin/users/add" class="btn btn-success">
-          <i class="bi bi-person-plus"></i> Добавить нового пользователя
-        </a>
-      </div>
-
-      <!-- Кнопка выхода -->
-      <div class="text-center mt-3">
-        <form th:action="@{/logout}" method="post">
-          <button class="btn btn-secondary">
-            <i class="bi bi-box-arrow-right"></i> Выйти
-          </button>
+      <div class="modal-body">
+        <form id="userForm">
+          <input type="hidden" id="userId">
+          <div class="mb-3">
+            <label>Имя</label>
+            <input type="text" class="form-control" id="username">
+          </div>
+          <div class="mb-3">
+            <label>Фамилия</label>
+            <input type="text" class="form-control" id="lastName">
+          </div>
+          <div class="mb-3">
+            <label>Email</label>
+            <input type="email" class="form-control" id="email">
+          </div>
+          <div class="mb-3">
+            <label>Пароль</label>
+            <input type="password" class="form-control" id="password">
+          </div>
+          <div class="mb-3">
+            <label>Роль</label>
+            <select multiple class="form-control" id="roles"></select>
+          </div>
         </form>
       </div>
-
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        <button type="button" class="btn btn-primary" id="saveUser">Сохранить</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Подключаем Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  $(document).ready(function() {
+    loadUsers();
+    loadRoles();
+
+    $('#addUserBtn').click(function() {
+      $('#userForm')[0].reset();
+      $('#userId').val('');
+      $('#modalTitle').text('Добавить пользователя');
+      $('#userModal').modal('show');
+    });
+
+    $('#saveUser').click(saveUser);
+
+    $('#logoutBtn').click(function() {
+      fetch('/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
+              .then(response => {
+                if (response.ok) {
+                  window.location.href = '/login?logout'; // Перенаправление на страницу логина после выхода
+                }
+              })
+              .catch(error => console.error('Error during logout:', error));
+    });
+  });
+
+  function loadUsers() {
+    fetch('/api/admin/users', {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+            .then(response => {
+              if (!response.ok) throw new Error('Failed to load users');
+              return response.json();
+            })
+            .then(users => {
+              const tbody = $('#usersTable');
+              tbody.empty();
+              users.forEach(user => {
+                tbody.append(`
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${user.username}</td>
+                            <td>${user.lastName}</td>
+                            <td>${user.email}</td>
+                            <td>${user.roles.map(r => r.name).join(', ')}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary edit-btn" data-id="${user.id}">Изменить</button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="${user.id}">Удалить</button>
+                            </td>
+                        </tr>
+                    `);
+              });
+
+              $('.edit-btn').click(function() {
+                editUser($(this).data('id'));
+              });
+
+              $('.delete-btn').click(function() {
+                deleteUser($(this).data('id'));
+              });
+            })
+            .catch(error => console.error('Error:', error));
+  }
+
+  function loadRoles() {
+    fetch('/api/admin/roles', {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+            .then(response => {
+              if (!response.ok) throw new Error('Failed to load roles');
+              return response.json();
+            })
+            .then(roles => {
+              const select = $('#roles');
+              select.empty();
+              roles.forEach(role => {
+                select.append(`<option value="${role.id}">${role.name}</option>`);
+              });
+            })
+            .catch(error => console.error('Error:', error));
+  }
+
+  function editUser(id) {
+    fetch(`/api/admin/users/${id}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+            .then(response => response.json())
+            .then(user => {
+              $('#userId').val(user.id);
+              $('#username').val(user.username);
+              $('#lastName').val(user.lastName);
+              $('#email').val(user.email);
+              $('#password').val('');
+              $('#roles').val(user.roles.map(r => r.id));
+              $('#modalTitle').text('Изменит пользователя');
+              $('#userModal').modal('show');
+            });
+  }
+
+  function saveUser() {
+    const user = {
+      id: $('#userId').val() || null,
+      username: $('#username').val(),
+      lastName: $('#lastName').val(),
+      email: $('#email').val(),
+      password: $('#password').val(),
+      roles: $('#roles').val().map(id => ({id: id}))
+    };
+
+    const method = user.id ? 'PUT' : 'POST';
+    const url = user.id ? `/api/admin/users/${user.id}` : '/api/admin/users';
+
+    fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(user)
+    })
+            .then(response => {
+              if (!response.ok) throw new Error('Failed to save user');
+              $('#userModal').modal('hide');
+              loadUsers();
+            })
+            .catch(error => console.error('Error:', error));
+  }
+
+  function deleteUser(id) {
+    if (confirm('Are you sure?')) {
+      fetch(`/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json'
+        }
+      })
+              .then(() => loadUsers())
+              .catch(error => console.error('Error:', error));
+    }
+  }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

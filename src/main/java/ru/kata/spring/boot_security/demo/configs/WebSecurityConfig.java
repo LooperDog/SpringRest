@@ -31,17 +31,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors().disable()
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/login", "/").permitAll() // Разрешаем доступ к этим путям
-                .antMatchers("/users/**").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/admin/**").hasRole("ADMIN")
+                .antMatchers("/login", "/api/login").permitAll()
+                //.antMatchers("/users/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
+                //.antMatchers("/admin/**").hasRole("ADMIN")
+                .antMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
                 .successHandler(successUserHandler)
                 .permitAll()
                 .and()
-                .logout().permitAll();
+                .logout().permitAll()
+                .and()
+                .httpBasic();
+
     }
+
     @Bean
     protected DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
@@ -49,6 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         daoAuthenticationProvider.setPasswordEncoder(appConfig.passwordEncoder());
         return daoAuthenticationProvider;
     }
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(daoAuthenticationProvider());
