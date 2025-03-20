@@ -21,6 +21,6 @@ public class MyController {
     @GetMapping("/users")
     public String userPage() {
 
-        return "current_user";
+        return "user_info";
     }
 }
