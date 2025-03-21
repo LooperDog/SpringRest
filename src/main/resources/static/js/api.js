@@ -26,7 +26,7 @@ export function deleteUser(id) {
     return apiFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
 }
 
-export function loadCurrentUser() {
+export function loadCurrent() {
     return apiFetch('/api/users/current_user');
 }
 
