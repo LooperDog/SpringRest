@@ -1,5 +1,5 @@
-import {loadUsers, deleteUser, loadRoles, saveUser, getUser } from "./api.js";
-//import {logout} from "./utils.js";
+import { loadUsers, deleteUser, loadRoles, saveUser, getUser } from "./api.js";
+import { logout } from "./utils.js";
 
 $(document).ready(function() {
     loadUsers().then(renderUsers).catch(error => console.error('Ошибка загрузки пользователей:', error));
@@ -81,3 +81,4 @@ function editUser(id) {
         })
         .catch(error => console.error('Ошибка загрузки пользователя:', error));
 }
+
